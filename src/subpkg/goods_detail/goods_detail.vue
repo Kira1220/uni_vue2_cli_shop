@@ -1,11 +1,11 @@
-<!-- cate 分类页面 -->
+<!-- 分包 点击轮播图进入对应的详情页 -->
 <template>
-  <div>分类页面</div>
+  <div>轮播图详情页</div>
 </template>
 
 <script>
 export default {
-  name: "cate",
+  name: "",
   data() {
     return {};
   },

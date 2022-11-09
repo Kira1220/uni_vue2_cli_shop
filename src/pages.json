@@ -2,7 +2,7 @@
   "pages": [{
     "path": "pages/home/home",
     "style": {
-      "navigationBarTitleText": "首页"
+
     }
   }, {
     "path": "pages/cate/cate",
@@ -20,6 +20,21 @@
       "navigationBarTitleText": "我的"
     }
   }],
+
+  "subPackages": [{
+    "root": "subpkg",
+    "pages": [{
+      "path": "goods_detail/goods_detail",
+      "style": {}
+    }]
+  }, {
+    "root": "subpkg",
+    "pages": [{
+      "path": "goods_list/goods_list",
+      "style": {}
+    }]
+  }],
+
   "tabBar": {
     "color": "black",
     "selectedColor": "#c00000",
@@ -51,7 +66,7 @@
 
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "品优购",
+    "navigationBarTitleText": "品 优 购",
     "navigationBarBackgroundColor": "#c00000",
     "backgroundColor": "#F8F8F8"
   }

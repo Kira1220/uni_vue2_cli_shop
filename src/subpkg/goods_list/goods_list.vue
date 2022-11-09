@@ -1,11 +1,11 @@
-<!-- cate 分类页面 -->
+<!-- 点击楼层图片跳转到当前商品列表页面 -->
 <template>
-  <div>分类页面</div>
+  <div>123</div>
 </template>
 
 <script>
 export default {
-  name: "cate",
+  name: "",
   data() {
     return {};
   },
