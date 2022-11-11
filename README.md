@@ -270,4 +270,11 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
       </view> 
 
   12. home页面完成，上传到git
-    *   
+    * 将本地的home分支进行本地的commit提交 
+      git add .
+      git commit -m "完成了home首页的开发"
+    * 将本地的home分支合并到本地的master分支
+      git checkout master
+      git merge home
+    * 删除本地的home分支
+      git branch -d home
