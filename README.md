@@ -278,3 +278,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
       git merge home
     * 删除本地的home分支
       git branch -d home
+
+# 四、分类页面制作cate
+  1. git 创建cate分支：在根目录下打开git bash 输入指令git checkout -b cate
+  2. 分类页面的基本结构
