@@ -1,11 +1,15 @@
 <!-- cate 分类页面 -->
 <template>
   <view>
+    <!-- 8.3 使用自定义的搜索组件 <my-search></my-search>
+    9.1 为自定义组件绑定点击事件 @searchClick='gotoSearch'  @searchClick表示自定义组件内发送出来的的事件= 当前页面内接收自定义组件的事件的响应事件gotoSearch
+    -->
+    <my-search @searchClick='gotoSearch' class="my-search"></my-search>
     <view class="scroll-view-container">
       <!-- 左侧滑动区 -->
       <scroll-view scroll-y="true" class="left-srcoll-view" :style="{height: wh + 'px'}">
         <block v-for="(item ,cat_id) in cateList" :key="cat_id">
-          <!-- 3.2 -->
+          <!-- 3.2 通过三元表达式判断是否给当前的view添加active样式-->
           <view :class="['left-scroll-view-item', cat_id === active ? 'active' : '']" @click="activeChange(cat_id)">{{item.cat_name}}</view>
         </block>
       </scroll-view>
@@ -34,6 +38,8 @@
 </template>
 
 <script>
+// 8.1 引入自定义组件
+import mySearch from "@/components/my-search/my-search";
 export default {
   name: "cate",
   data() {
@@ -48,7 +54,7 @@ export default {
   onLoad() {
     const sysInfo = uni.getSystemInfoSync(); //1.2小程序的API-- uni.getSystemInfoSync()方法可以获取设备相关的数据
     // console.log("得到设备可用的空白的高度：" + sysInfo.windowHeight);
-    this.wh = sysInfo.windowHeight; //1.3
+    this.wh = sysInfo.windowHeight - 50; //1.3
     // console.log(this.wh);
 
     this.getCateList(); // 2.2调用方法获取左侧的分类列表数据
@@ -82,16 +88,34 @@ export default {
     gotoGoodsList(item3) {
       uni.navigateTo({
         url: "/subpkg/goods_list/goods_list?cat_id=" + item3.cat_id,
-        success: (result) => {},
-        fail: () => {},
-        complete: () => {},
+      });
+    },
+
+    // 9.2 为自定义组件绑定click点击事件,这里用到子传父数据通信；gotoSearch事件用于响应自定义组件my-search内部设置的的点击事件；当点击my-search组件，其自定义组件内部发送另一个事件searchClick；通过@searchClick=gotoSearch 做出以下事件响应
+    gotoSearch() {
+      // console.log(123);
+      // 9.3 处理响应事件，即跳转到分包search页面中
+      uni.navigateTo({
+        url: "/subpkg/search/search",
       });
     },
   },
+
+  // 8.2 注册自定义组件
+  components: {
+    mySearch,
+  },
 };
 </script>
+
 <style scoped lang="scss">
 /* @import url(); 引入css类 */
+.my-search {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
 .scroll-view-container {
   display: flex;
   .left-srcoll-view {

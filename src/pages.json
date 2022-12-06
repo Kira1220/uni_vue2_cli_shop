@@ -5,7 +5,8 @@
     }, {
       "path": "pages/cate/cate",
       "style": {
-        "navigationBarTitleText": "分类"
+        "navigationBarTitleText": "分类",
+        "enablePullDownRefresh": false
       }
     },
     {
@@ -33,10 +34,16 @@
       "path": "goods_list/goods_list",
       "style": {}
     }]
+  }, {
+    "root": "subpkg",
+    "pages": [{
+      "path": "search/search",
+      "style": {}
+    }]
   }],
 
   "tabBar": {
-    "color": "black",
+    "color": "#333333",
     "selectedColor": "#c00000",
     "backgroundColor": "#eaf1f3",
     "position": "bottom",
@@ -69,5 +76,12 @@
     "navigationBarTitleText": "品 优 购",
     "navigationBarBackgroundColor": "#c00000",
     "backgroundColor": "#F8F8F8"
+  },
+
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+    }
   }
 }

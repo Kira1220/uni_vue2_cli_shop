@@ -281,4 +281,146 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 # 四、分类页面制作cate
   1. git 创建cate分支：在根目录下打开git bash 输入指令git checkout -b cate
-  2. 分类页面的基本结构
+  2. 分类页面的基本结构 
+      <view class="scroll-view-container">
+        <scroll-view scroll-y="true"  :style="{height: wh + 'px'}"><!-- 左侧滑动区 -->
+          <block v-for="(item ,cat_id) in cateList" :key="cat_id"><!-- 2.4遍历左侧的一级标题项目-->
+           <view>{{item.cat_name}}</view>
+          </block>
+        </scroll-view>
+        <scroll-view scroll-y="true" :style="{height: wh +'px'}"><!-- 右侧滑动区 -->
+          <view v-for="(item2, indey) in cateLevel2" :key="indey"><!--遍历右侧的二级标题-->
+          <view>/ {{ item2.cat_name }} /</view>
+          </view>
+        </scroll-view>
+      </view>
+  3. 具体的步骤见cate.vue
+  4. 分类页面完成，通过git上传到git hub
+    * 将本地的cate分支进行本地的commit提交 
+      git add .
+      git commit -m "完成了cate分类页面的开发"
+    * 将cate分支提交到git hub远程仓库
+      git push -u origin cate
+    * 将本地的cate分支中的代码合并到本地的master分支
+      git checkout master
+      git merge cate
+      git push
+    * 删除本地的cate分支
+      git branch -d cate
+
+# 五、搜索相关的内容
+  1. 创建git分支search
+    * 终端打开git bash
+    * git branch 查看当前分支
+    * git checkout -b search 创建并切换进入search分支
+    * git branch 查看，出现search表示分支创建成功
+
+  2. 创建自定义搜索组件my-search，并将组件放入分类页面的顶部区域
+    - 1. 在src文件夹下创建与pages同级别的components文件夹-->创建my-search文件夹-->创建my-search.vue文件为自定义的组件
+    - 2. 在cate分类页面使用my-search自定义组件，则在cate.vue中：
+      * 引入自定义组件 import mySearch from "../../components/my-search/my-search";
+      * 注册组件 components: {mySearch,},
+      * 使用组件 <my-search></my-search>
+    
+     # -3. 自定义搜索组件my-search的基本布局
+      * uni-app 的扩展组件uni-ui的安装和使用：
+       - uni-ui是Dcloud提供的一个跨端ui组件库，它是基于vue组件的，flex布局的，无dom的跨全端ui框架。uni-ui不包括基础组件，它是基础组件的补充。（uni-ui组件包括：......)
+       - uni-ui组件的安装方式： https://uniapp.dcloud.net.cn/component/uniui/quickstart.html
+      * npm安装具体步骤：
+        1. 在根目录下新建vue.config.js文件，并粘贴
+        module.exports = {
+		      transpileDependencies:['@dcloudio/uni-ui']
+        }
+        2. 项目终端输入指令npm i @dcloudio/uni-ui   或   yarn add @dcloudio/uni-ui
+        3. 配置easycom规则，让 npm 安装的组件支持 easycom。打开项目根目录下的 pages.json 并添加 easycom 节点：
+        "easycom": {
+        	"autoscan": true,
+        	"custom": {
+        		// uni-ui 规则如下配置
+        		"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+        	}
+        },
+        4. 在my-search自定义组件页面内引用组件：import {uniBadge} from '@dcloudio/uni-ui'
+        5. 注册组件 components：{uniBadge}
+        6. 在 template 中使用组件：<uni-badge text="1"></uni-badge>
+
+    - 4. 通过设置props属性，动态绑定组件style样式，增加自定义组件在不同页面的使用时的灵活性（具体见my-search页面的步骤2）
+    - 5. 通过点击事件，在自定义组件内通过this.$emit('事件名')向外发送事件，在对应的使用自定义组件的页面中通过 @事件名='响应事件'，做出对应的事件响应，跳转到search分包页面(具体见cate页面的步骤9，home页面的步骤4)
+
+  # 3. 搜索建议页面search.vue
+    - 1. 新建search分包页面。在subpkg文件夹-->新建search文件夹-->search.vue文件
+    - 2. pages.json文件配置分包
+      "subpackages":[{
+        "root": "subpkg",
+        "pages": [{
+          "path": "search/search",
+          "style": {}
+        }]
+      }] 
+    - 3. 顶部搜索框的制作：
+      <view class="search-box">
+        <uni-search-bar placeholder="自定义背景色" @input="input" focus="true" radius="100" cancelButton='none'>
+        </uni-search-bar>
+      </view>
+      其中uni-search-bar 是uni-ui的内置组件。@focus='true'用于实现搜索框内自动聚焦；radius=100表示搜索框的圆角尺寸；cancel Button='none'用于内置组件的“取消按钮”不显示，@input='input' 绑定input输入框事件，这些内置组件的功能的具体用法都可以在uni-app官网查找。
+
+      data() {
+        return {
+          timer: null, //1.计时器
+          keyWord: "", //2.搜索关键词
+          searchResults: [], //3.1搜索结果列表
+        };
+      },
+      methods: {
+        // input输入事件的处理函数,当搜索框内输入文字时，输入的值= res
+        input(res) {
+          // 设置防抖定时器，用户在输入框停顿时间超过500毫秒时才触发定时器
+          clearTimeout(this.timer); //清除timer对应的延时器
+          this.timer = setTimeout(() => {
+            //如果500毫秒内没有触发新的输入事件，则为搜索关键词赋值
+            this.keyWord = res;
+            // 3.2 根据关键词，查询搜索建议列表
+            this.getSearchList();
+          }, 500);
+        },
+        // 3.3 获取搜索结果数据转存给searchReasults数组
+        async getSearchList() {
+          if (this.keyWord === "") {
+            this.searchResults = [];
+            return;
+          }
+          const { data: res } = await uni.$http.get(
+            "/api/public/v1/goods/qsearch",
+            { query: this.keyWord }
+          );
+          if (res.meta.status !== 200) return uni.$showMsg();
+          this.searchResults = res.message;
+        },
+      }
+    — 展示搜索建议列表searchResults ,点击搜索建议的 Item 项，跳转到商品详情页面@click="gotoDetail(item.goods_id)"
+      <view class="sugg-list">
+        <view class="sugg-item" v-for="(item,i) in searchResults" :key="i" @click="gotoDetail(item.goods_id)">
+          <view class="goods-name">{{item.goods_name}}</view>
+          <uni-icons type="forward" size="15"></uni-icons>
+        </view>
+      </view>
+      gotoDetail(goods_id) {
+        uni.navigateTo({
+          url: "/subpkg/goods_detail/goods_detail?goods_id=" + goods_id,
+        });
+      },
+
+   - 4. 搜索历史
+  
+  # 4. 分支的合并与提交
+    * 将本地的search分支进行本地提交 
+      git add .
+      git commit -m "完成了搜索功能的开发"
+    * 将本地的search分支合并到本地的master分支
+      git checkout master
+      git merge search
+      git push
+    * 将本地的search分支推送到GitHub
+     git push -u origin search
+    * 删除本地的home分支
+      git branch -d search
