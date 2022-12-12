@@ -581,7 +581,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
   8. 分支的合并与提交
   * 将goodslist分支进行本地提交
-    git add.
+    git add .
     git commit -m "完成了商品列表页面的开发"
   * 将本地的goodslist分支推送到码云
     git push -u origin goodslist
