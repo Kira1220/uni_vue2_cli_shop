@@ -32,7 +32,11 @@
     "root": "subpkg",
     "pages": [{
       "path": "goods_list/goods_list",
-      "style": {}
+      "style": {
+        "onReachBottomDistance": 100,
+        "enablePullDownRefresh": true,
+        "backgroundColor": "#F8F8F8"
+      }
     }]
   }, {
     "root": "subpkg",
