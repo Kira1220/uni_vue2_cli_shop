@@ -424,3 +424,175 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
      git push -u origin search
     * 删除本地的home分支
       git branch -d search
+
+# 六、商品列表页面 goodslist
+  1. 创建goodslist分支--在根目录下打开git bash 输入指令git checkout -b goodslist
+  2. 进入商品列表页面的三个途径：
+    - 1. 在home首页的楼层区域，点击楼层内的图片进入商品列表页面（携带的参数是）
+    - 2. 在cate分类页面，点击右侧的分类图片进入（携带的参数是）
+    - 3. 在search搜索页面，点击搜索历史的关键词进入
+  3. 进入src>subpkg>goods_list>goods_list.vue页面，编辑：
+  <template>
+    <view class="goods-list">
+      <block v-for="(item ,goods_id) in goodsList" :key="goods_id">
+        <view class="goods-item">
+          <view class="goods-item-left">   //商品左侧图片区域
+            <image :src="item.goods_small_logo || defaultPic" class="goods-pic"></image>
+          </view>
+          <view class="goods-item-right">    //商品右侧信息区域
+            <view class="goods-name">{{item.goods_name}}</view>
+            <view class="goods-info-box">
+              <view class="goods-price">￥{{item.goods_price.toFixed(2)}}</view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </template>
+  data() {
+    return {
+      queryObj: {// 1.1 设置请求的参数对象queryObj
+        query: "", //点击home首页的楼层图片携带query=''参数，跳转到goods_list页面
+        cat_id: "", //点击cate分类页面的三级分类图片，携带cid=''参数，跳转到goods_list页面
+        pagenum: 1, //设置当前goods_list页面的页码值
+        pageSize: 10, //设置页面每页显示10条数据
+      },
+      goodsList: [], //用于保存当goods_list页面一加载，发送获取商品列表数据的请求
+      total: 0, //商品列表的条数
+      defaultPic: "/src/static/logo.png", //图片加载失败时显示此默认图片的路径
+    };
+  },
+  onLoad(options) {
+    //options 是一个内置参数对象，当onLoad触发，options中即携带了跳转时的参数
+    // 1.2 当页面一加载，将跳转时携带的参数转存到queryObj对象中：
+    this.queryObj.query = options.query || "";   //来自home首页的query=''参数转存到this.queryObj.query
+    this.queryObj.cat_id = options.cat_id || ""; //来自cate分类的三级分类的cat_id=''参数转存到this.queryObj.cat_id
+    this.getGoodsList(); // 1.3通过页面跳转时携带的参数，发送请求，获取数据
+  },
+  methods: {
+    async getGoodsList() {// 1.4 获取商品列表数据的方法
+      const { data: res } = await uni.$http.get("/api/public/v1/goods/search", this.queryObj); //this.queryObj是发送请求时携带的参数
+      if (res.meta.status !== 200) return uni.$showMsg(); //当返回的状态码不等于200时，表示数据请求失败，即return出去，并调用封装的uni.shoeMsg()方法用于提示请求失败
+      this.goodsList = res.message.goods; //转存获取到的商品列表数据
+      this.total = res.message.total; //转存获取到的商品列表长度
+    },
+  },
+
+  4. 把商品的item项封装为自定义的组件。新建components>goods_list_item>goods_list_item.vue :
+    <view class="goods-item">
+      <view class="goods-item-left">
+        <image :src="item.goods_small_logo || defaultPic" class="goods-pic"></image>
+      </view>
+      <view class="goods-item-right">
+        <view class="goods-name">{{item.goods_name}}</view>
+        <view class="goods-info-box">
+          <view class="goods-price">￥{{item.goods_price.toFixed(2)}}</view>
+        </view>
+      </view>
+    </view>
+    props: {
+      item: { //接收goods_list传递的值
+        type: Object,
+        default: {},
+      },
+    },
+    data() {
+      return {
+        defaultPic: "/src/static/logo.png",
+      };
+    },
+    * 在goods_list.vue中：
+      引入组件：import goodsListItem from "/src/components/goods_list_item/goods_list_item";
+      注册： components: {goodsListItem, 
+      使用：      
+      <block v-for="(item ,goods_id) in goodsList" :key="goods_id">
+        <goods-list-item :item="item"></goods-list-item>
+      </block>
+
+  5. 实现上拉加载更多
+    - 1. 在page.json中，找到goods_list分包，并在style中添加"onReachBottomDistance": 100,
+      {
+        "root": "subpkg",
+        "pages": [{
+          "path": "goods_list/goods_list",
+          "style": {
+            "onReachBottomDistance": 100,
+          }
+        }]
+      } 
+    - 2. goods_list.vue中：
+     data() {
+       return {
+         isLoading: false, //3.1节流阀，避免多次加载数据
+       };
+      },
+     onLoad(options) {
+      this.getGoodsList();
+     },
+     methods: {
+       async getGoodsList() {
+         this.isLoading = true; //3.2开启节流阀
+         const { data: res } = await uni.$http.get("/api/public/v1/goods/search",this.queryObj);
+         this.isLoading = false; //3.3关闭节流阀
+         if (res.meta.status !== 200) return uni.$showMsg(); //当返回的状态码不等于200时，表示数据请求失败，即return出去，并调用封装的uni.shoeMsg()方法用于提示请求失败
+         this.goodsList = [...this.goodsList, ...res.message.goods]; //3.4 通过解构赋值的方式，保存获取到的商品列表数据
+         this.total = res.message.total; //转存获取到的商品列表长度
+       },
+     },
+     onReachBottom() { // 3.5 上拉加载更多
+       if (this.isLoading == true) return;
+       if (this.queryObj.pagenum * this.queryObj.pageSize >= this.total)
+         return uni.$showMsg("到底啦~");
+       this.queryObj.pagenum++;
+       this.getGoodsList();
+     },
+
+  6. 下拉重置商品列表
+    - 1. 在page.json中，找到goods_list分包，并在style中添加"enablePullDownRefresh": true,"backgroundColor": "#F8F8F8"
+    - 2. 
+      methods: {
+        async getGoodsList(cb) {
+          this.isLoading = true;
+          const { data: res } = await uni.$http.get("/api/public/v1/goods/search",this.queryObj ); //this.queryObj是发送请求时携带的参数
+          this.isLoading = false; //3.3关闭节流阀
+          cb && cb();
+          ... ...
+        },
+      },
+      onPullDownRefresh() {// 4.1 下拉刷新重置
+        this.queryObj.pagenum = 1;
+        this.total = 0;
+        this.isLoading = false;
+        this.goodsList = [];
+        this.getGoodsList(() => { 
+          uni.stopPullDownRefresh();
+        });
+      },
+
+  7. 点击商品item项跳转到商品详情页面
+    <view v-for="(item ,goods_id) in goodsList" :key="goods_id" @click="gotoDetail(item)">
+      <goods-list-item :item="item"></goods-list-item>
+    </view>
+    gotoDetail(item) {
+      uni.navigateTo({
+        url: "/subpkg/goods_detail/goods_detail?goods_id=" + item.goods_id,
+      });
+    },   
+
+  8. 分支的合并与提交
+  * 将goodslist分支进行本地提交
+    git add.
+    git commit -m "完成了商品列表页面的开发"
+  * 将本地的goodslist分支推送到码云
+    git push -u origin goodslist
+  * 将本地goodslist分支中的代码合并到master分支
+    git checkout master
+    git merge goodslist
+    git push
+  * 删除本地的goodslist分支
+    git branch -d goodslist
+
+# 七、商品详情页面
+# 八、购物车页面
+# 九、登录与支付
+# 十、发布
