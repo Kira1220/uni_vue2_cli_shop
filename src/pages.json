@@ -44,6 +44,11 @@
       "path": "search/search",
       "style": {}
     }]
+  }, {
+    "root": "subpkg",
+    "pages": [{
+      "path": "shop/shop"
+    }]
   }],
 
   "tabBar": {

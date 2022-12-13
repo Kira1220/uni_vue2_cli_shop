@@ -592,7 +592,118 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   * 删除本地的goodslist分支
     git branch -d goodslist
 
-# 七、商品详情页面
+# 七、商品详情页面goodsdetail.vue
+  1. 创建分支，添加编译模式
+    * 根目录打开git bash,输入git checkout -b goodsdetail
+    * 在微信开发者工具中，添加编译模式subpkg/goods_detail/goods_detail 携带参数goods_id= 395
+
+  2. 获取商品详情数据
+    - 1. 获取商品详情页面
+      data() {
+        return {
+          goods_info: {},                     //1.1 发送请求后获取到的商品详情信息
+        };
+      },
+      onLoad(options) {                       //1.2 options保存了页面加载/跳转到当前页面时携带的参数
+        const goods_id = options.goods_id;    //1.3 转存options中的goods_id参数为goods_id
+        this.getGoodsDetail(goods_id);        //1.4 调用方法获取商品的详情数据（goods_id发送请求时携带的实际参数）
+      },
+      methods: {
+        async getGoodsDetail(goods_id) {      // 1.5 获取商品的详情数据的方法
+          const { data: res } = await uni.$http.get("/api/public/v1/goods/detail", 
+          {goods_id: goods_id, });            //携带的参数goods_id:参数goods_id 简写{goods_id}
+
+          if (res.meta.status !== 200) return uni.$showMsg();         //状态码不等于200时，表示获取商品详情数据出错，return并调用方法弹窗提示
+          this.goods_info = res.message;                              //获取到的数据res.message转存到goods_info对象中
+        },
+
+  3. 通过v-for循环遍历，展示轮播图数据
+    <swiper :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true">
+      <swiper-item v-for="(item, i) in goods_info.pics" :key="i">
+        <image :src="item.pics_big"></image>
+      </swiper-item>
+    </swiper>
+
+  4. 点击轮播图的图片显示对应的图片进行预览
+    <image :src="item.pics_big" @click="preview(i)"></image> 给图片标签添加点击事件
+    preview(i) {
+      uni.previewImage({          //uni-app的内置API uni.previewImage()预览图片 （详见https://uniapp.dcloud.net.cn/api/media/image.html）
+        current: i,               //预览时，默认显示图片的索引（current 为当前显示图片的链接/索引值）
+        urls: this.goods_info.pics.map((x) => x.pics_big), //map(()=>{})方法遍历出每一项pic_big大图地址，返回的结果是一个图片地址组成的数组
+      });
+    },
+
+  5. 渲染商品信息区域
+    <view class="goods-info-box">
+      <view class="price">￥{{goods_info.goods_price}}</view><!-- 商品价格 -->
+      <view class="goods-info-body"><!-- 信息主体区域 -->
+        <view class="goods-name">{{goods_info.goods_name}}</view>
+        <view class="favi">
+          <uni-icons type="star" size="18" color="gray"></uni-icons>
+          <text>收藏</text>
+        </view>
+      </view>
+      <view class="transportation-expenses">快递： 免运费</view><!-- 运费 -->
+    </view>
+
+  6. 渲染商品的图文区域 
+    <view class="goods-detail-container">
+      <text class="info-title">详情展示</text>
+      <rich-text :nodes="goods_info.goods_introduce"></rich-text>
+    </view>
+    * rich-text是uni-app的内置组件（具体用法在：https://uniapp.dcloud.net.cn/component/rich-text.html）
+    async getGoodsDetail(goods_id) {
+      const { data: res } = await uni.$http.get("/api/public/v1/goods/detail", {
+        goods_id
+      });
+      if (res.meta.status !== 200) return uni.$showMsg(); 
+     * 使用字符串的replace()方法，为img标签添加行内style样式，解决图片底部有空白间隙的问题,
+     * 使用字符串的replace()方法,将图片为.webp格式改为.jpg格式，从而解决.webp格式图片在ios不显示的问题
+      res.message.goods_introduce = res.message.goods_introduce
+        .replace(/<img/g, '<img style="display:block;"')
+        .replace(/webp/g, "jpg");
+
+      this.goods_info = res.message; //获取到的数据res.message转存到goods_info对象中
+    },
+
+  7. 底部的商品导航区域
+    <view class="goods_nav">
+      <uni-goods-nav :fill="true" :options="options" :button-group="customButtonGroup" @click="onClick" @buttonClick="buttonClick" />
+    </view>
+      options: [
+        {icon: "shop",
+          text: "进入店铺",
+          infoBackgroundColor: "#007aff",
+          infoColor: "#f5f5f5",
+        },{icon: "cart",
+          text: "购物车",
+          info: "",
+        },
+      ],
+      customButtonGroup: [
+        {text: "加入购物车",
+          backgroundColor: "linear-gradient(90deg, #FFCD1E, #FF8A18)",
+          color: "#fff",
+        },{text: "立即购买",
+          backgroundColor: "linear-gradient(90deg, #FE6035, #EF1224)",
+          color: "#fff",
+        },
+      ],
+    * <uni-goods-nav>是uni-app的扩展组件，具体见https://uniapp.dcloud.net.cn/component/uniui/uni-goods-nav.html
+
+  8. 分支的合并与提交
+   - 1. 将goodsdetail分支进行本地提交
+    git add .
+    git commit -m "完成了商品详情页面的开发"
+   - 2. 本地的goodsdetail分支推送到GitHub
+    git push -u origin goodsdetail
+   - 3. 本地goodsdetail分支合并到master分支
+    git checkout master
+    git merge goodsdetail
+    git push
+   - 4. 删除本地的goodsdetail分支
+    git branch -d goodsdetail
+
 # 八、购物车页面
 # 九、登录与支付
 # 十、发布
